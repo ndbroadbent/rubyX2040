@@ -1,0 +1,13 @@
+h2. rubyX2040
+
+A Ruby interface for the Pertelian X2040 LCD Display
+
+(http://www.pertelian.com/joomla/index.php?option=com_content&task=view&id=43&Itemid=48)
+
+h3. Example
+
+require 'rubyX2040'
+
+p = Pertelian.new
+p.message "Hello World!"
+
