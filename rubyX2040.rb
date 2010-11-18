@@ -1,4 +1,3 @@
-#!/usr/bin/ruby
 # Ruby interface to the Pertelian X2040 LCD Display
 
 require 'rubygems'
