@@ -9,9 +9,12 @@ ROW_WIDTH = 20  # Number of characters that will fit on a line.
 ROW_OFFSETS = [0x00, 0x40, 0x14, 0x54]  # Offsets for ordering rows correctly.
 
 class Pertelian
+  attr_accessor :icons
+
   def initialize(tty='/dev/ttyUSB0')
     @sp = SerialPort.new tty
     setup
+    @icons = {}
   end
 
   def setup
@@ -89,6 +92,8 @@ class Pertelian
     # Map binary data based on presence of '#' character.
     data = rows.map{|row| row.ljust(5).split('').inject(0b00000){|r, c| r = r << 1; r += 1 if c == "#" || c == "*"; r }.chr}
     load_char(mem_loc, data)
+    # Save icon memory index and data.
+    @icons[File.basename(file, ".chr")] = {:loc => mem_loc, :data => data}
   end
 end
 
