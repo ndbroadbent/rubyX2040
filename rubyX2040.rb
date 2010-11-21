@@ -3,16 +3,17 @@
 require 'rubygems'
 require 'serialport'
 
-WRITE_DELAY = 0.005  # Number of seconds to wait between character bytes.
-INSTRUCTION_DELAY = 0.01  # Number of seconds to wait between instruction bytes.
-ROW_WIDTH = 20  # Number of characters that will fit on a line.
-ROW_OFFSETS = [0x00, 0x40, 0x14, 0x54]  # Offsets for ordering rows correctly.
-
 class Pertelian
   attr_accessor :icons
 
   def initialize(tty='/dev/ttyUSB0')
     @sp = SerialPort.new tty
+
+    @write_delay = 0.002  # Number of seconds to wait between character bytes.
+    @instruction_delay = 0.01  # Number of seconds to wait between instruction bytes.
+    @row_width = 20  # Number of characters that will fit on a line.
+    @row_offsets = [0x00, 0x40, 0x14, 0x54]  # Offsets for ordering rows correctly.
+
     setup
     @icons = {}
   end
@@ -23,7 +24,7 @@ class Pertelian
     # Entry mode set; increment cursor direction; do not automatically shift.
     # Cursor/display shift; cursor move.
     # Display On; cursor off; do not blink.
-    "\x38\x06\x10\x0c\x01".split.each do |byte|
+    "\x38\x06\x10\x0C\x01".split('').each do |byte|
       send_instruction(byte)
     end
   end
@@ -39,10 +40,10 @@ class Pertelian
       pos = [row, pos]
     end
     # As an array of [row (1 - 4), column (1 - 20)]
-    send_bytes ["\xfe", (0b10000000 + ROW_OFFSETS[pos[0]-1] + pos[1]-1).chr]
+    send_bytes ["\xfe", (0b10000000 + @row_offsets[pos[0]-1] + pos[1]-1).chr]
   end
 
-  def send_bytes(bytes, delay=WRITE_DELAY)
+  def send_bytes(bytes, delay=@write_delay)
     # Send a stream of bytes to the Pertelian.
     # Also, sleep for delay seconds between sending each byte.
     bytes.each do |byte|
@@ -53,7 +54,7 @@ class Pertelian
 
   def send_instruction(byte)
     # Send an instruction byte to the Pertelian.
-    send_bytes ["\xfe", byte], INSTRUCTION_DELAY
+    send_bytes ["\xfe", byte], @instruction_delay
   end
 
   def power(on)
@@ -93,7 +94,7 @@ class Pertelian
     data = rows.map{|row| row.ljust(5).split('').inject(0b00000){|r, c| r = r << 1; r += 1 if c == "#" || c == "*"; r }.chr}
     load_char(mem_loc, data)
     # Save icon memory index and data.
-    @icons[File.basename(file, ".chr")] = {:loc => mem_loc, :data => data}
+    @icons[File.basename(filename, ".chr")] = {:loc => mem_loc, :data => data}
   end
 end
 
